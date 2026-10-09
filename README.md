@@ -42,7 +42,7 @@ npm run build
 
 ## Deployment
 
-Publish the `dist/` directory to GitHub Pages, Netlify, Cloudflare Pages, or another static host configured with SPA fallback to `index.html`. No secrets are required. The managed project build declaration should run `npm install && npm run build` and publish `dist`.
+The live GitHub Pages deployment is available at [rmsudhir2008-cyber.github.io/unread-ai](https://rmsudhir2008-cyber.github.io/unread-ai/). The source repository is [github.com/rmsudhir2008-cyber/unread-ai](https://github.com/rmsudhir2008-cyber/unread-ai). GitHub Actions builds the `dist/` directory and publishes it with SPA fallback to `index.html`. No secrets are required for local analysis.
 
 ## Known limitations
 
@@ -50,9 +50,9 @@ Natural-language variation and ambiguous dates are not guessed; some valid tasks
 
 ## Submission fields
 
-- GitHub repository URL: **To be created and verified**
-- Public repository confirmation: **Pending repository creation**
-- Deployed application URL: **To be created and verified**
+- GitHub repository URL: https://github.com/rmsudhir2008-cyber/unread-ai
+- Public repository confirmation: **Confirmed public**
+- Deployed application URL: https://rmsudhir2008-cyber.github.io/unread-ai/
 - Project description: “Briefme is a local-first conversation briefing tool that helps people catch up on busy chats by surfacing explainable priorities, action items, deadlines, decisions, mentions, and unanswered questions, with evidence links back to the original messages.”
 - GenAI disclosure: “No external GenAI inference service is used at runtime. Analysis is deterministic and rule-based in the browser.”
 
