@@ -17,6 +17,8 @@ Briefme is a privacy-first conversation intelligence micro-app for the ProtocolX
 
 Static React + TypeScript + Vite. The parser, explainable analysis engine, resilient storage adapter, and export functions are independent browser modules. The analysis pipeline separates parsing, signal scoring, deadline normalization, task extraction, decision detection, question resolution, and evidence linking. The public GitHub Pages deployment is local-first: it has no remote database, analytics, telemetry, third-party script, or required cloud inference dependency.
 
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the runtime flow and [SECURITY.md](SECURITY.md) for the data boundary and threat model.
+
 ## AI disclosure
 
 The public GitHub Pages application uses a deterministic, explainable rule-based engine (`rule-based-2.0`) rather than pretending keyword matching is generative AI. It identifies explicit action language, assignees, deadlines, mentions, project decisions, and potentially unanswered questions. An optional Gemini server adapter remains in the source for deployments that explicitly configure a server and disclose the transfer; it is not required or used by the GitHub Pages deployment.
