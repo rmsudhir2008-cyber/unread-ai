@@ -6,24 +6,24 @@ Briefme is a privacy-first conversation intelligence micro-app for the ProtocolX
 
 - Paste or import local `.txt`/`.csv` conversation text, edit/remove preview rows, and inspect parsed messages.
 - Reproducible synthetic college hackathon demo.
-- Local rule-based summary, explainable priority signals, tasks, deadlines, mentions, decisions, and potentially unanswered questions.
+- Local rule-based summary with explainable priority signals, explicit-date normalization, assignee detection, deduplicated deadlines, tasks, mentions, decisions, and potentially unanswered questions.
 - Expandable evidence/source references back to original parsed messages.
 - Task completion/reopening, editing/dismissal, filters, local history search, rename/reanalyze, delete-one/delete-all controls.
 - Browser-generated Markdown and JSON exports.
 - Responsive white / Brief Blue interface with reduced-motion support and non-color labels.
-- IndexedDB persistence with a safe in-memory fallback if IndexedDB is unavailable.
+- IndexedDB persistence with a tested in-memory fallback if IndexedDB is unavailable or blocked.
 
 ## Architecture
 
-Static React + TypeScript + Vite. The parser, analysis engine, storage adapter, and export functions are independent browser modules. There is no backend, remote database, analytics, telemetry, third-party script, or cloud inference dependency.
+Static React + TypeScript + Vite. The parser, explainable analysis engine, resilient storage adapter, and export functions are independent browser modules. The analysis pipeline separates parsing, signal scoring, deadline normalization, task extraction, decision detection, question resolution, and evidence linking. The public GitHub Pages deployment is local-first: it has no remote database, analytics, telemetry, third-party script, or required cloud inference dependency.
 
 ## AI disclosure
 
-The submitted application does **not** use a runtime GenAI service. It uses a deterministic, explainable rule-based engine (`rule-based-1.0`) that identifies explicit action language, deadlines, mentions, project decision language, and questions. This is intentionally disclosed rather than described as generative AI. AI-assisted coding may have been used during development, but no coding assistant runs inside the submitted application and no conversation text is sent to one.
+The public GitHub Pages application uses a deterministic, explainable rule-based engine (`rule-based-2.0`) rather than pretending keyword matching is generative AI. It identifies explicit action language, assignees, deadlines, mentions, project decisions, and potentially unanswered questions. An optional Gemini server adapter remains in the source for deployments that explicitly configure a server and disclose the transfer; it is not required or used by the GitHub Pages deployment.
 
 ## Privacy behavior
 
-Conversation text is processed in the browser and stored only in this browser’s IndexedDB when the user saves/analyzes it. Text is not placed in URLs, logs, or network requests. Exports happen only after an explicit user click. Local storage is browser-managed and is not claimed to be encrypted. The app loads its own deployment assets, but does not upload conversation content.
+In Local mode, conversation text is processed in the browser and stored only in this browser’s IndexedDB or temporary in-memory fallback when the user saves/analyzes it. Text is not placed in URLs, logs, or network requests. Exports happen only after an explicit user click. Local storage is browser-managed and is not claimed to be encrypted. The GitHub Pages deployment does not upload conversation content.
 
 ## Local development
 

@@ -1,4 +1,4 @@
-import {describe,expect,it} from 'vitest';import {parseConversation,validateInput} from '../src/parser/parser';import {analyze} from '../src/analysis/engine';
+import {describe,expect,it} from 'vitest';import {parseConversation,validateInput} from '../src/parser/parser';import {analyze,extractDeadline} from '../src/analysis/engine';
 const text='[2026-10-09 10:00] Maya: Please review the report by Friday.\ncontinuation line\n[2026-10-09 10:04] Alex: Decision: we will ship the emerald UI.\n[2026-10-09 10:08] Priya: @Alex, can you confirm?';
 describe('UNREAD local intelligence',()=>{
  it('parses multiline and preserves source lines',()=>{const ms=parseConversation(text);expect(ms).toHaveLength(3);expect(ms[0].text).toContain('continuation line');expect(ms[0].id).toBe('m-1');expect(ms[0].line).toBe(1)});
@@ -7,8 +7,11 @@ describe('UNREAD local intelligence',()=>{
  it('extracts explainable findings, tasks, decisions, questions and mentions',()=>{const a=analyze(parseConversation(text),'Alex');expect(a.tasks.length).toBeGreaterThan(0);expect(a.decisions[0].type).toBe('confirmed');expect(a.questions.length).toBe(1);expect(a.mentions).toContain('m-3');expect(a.findings[0].detail).toMatch(/deadline|mention|action/i)});
  it('preserves ambiguous deadline language instead of silently resolving it',()=>{const a=analyze(parseConversation('Maya: Let us meet next Monday.'));expect(a.deadlines[0].ambiguous).toBe(true);expect(a.deadlines[0].label).toMatch(/resolve/)});
  it('keeps source references and deterministic task states',()=>{const a=analyze(parseConversation('Jordan: Fix the export test; it is now complete.\nPriya: Please submit the report by tomorrow.'),'Alex');expect(a.tasks.some(t=>t.status==='completed')).toBe(true);expect(a.tasks.every(t=>t.sourceId.startsWith('m-'))).toBe(true)});
- it('does not need fetch or a network service',()=>{expect(typeof fetch).toBe('function');expect(analyze(parseConversation('Alex: ordinary local note'),'Alex').summary).toContain('1 messages')});
-});
+	 it('does not need fetch or a network service',()=>{expect(typeof fetch).toBe('function');expect(analyze(parseConversation('Alex: ordinary local note'),'Alex').summary).toContain('1 messages')});
+	 it('resolves explicit dates to ISO while preserving relative-date uncertainty',()=>{expect(extractDeadline('Ship it on 2026-10-15')).toMatchObject({iso:'2026-10-15',ambiguous:false});expect(extractDeadline('Please send it by Friday')).toMatchObject({ambiguous:true})});
+	 it('captures assignees and deduplicates repeated deadline labels',()=>{const a=analyze(parseConversation('Alex: @Priya please review the report by 2026-10-15.\nMaya: Please review the report by 2026-10-15.'),'Alex');expect(a.tasks[0].assignee).toBe('Priya');expect(a.deadlines).toHaveLength(1);expect(a.tasks[0].deadline?.iso).toBe('2026-10-15')});
+	 it('does not turn ordinary questions into tasks and recognizes answers',()=>{const a=analyze(parseConversation('Alex: Has anyone reviewed the report?\nPriya: Yes, I reviewed and approved the report.'),'Alex');expect(a.tasks).toHaveLength(0);expect(a.questions[0].potentiallyUnanswered).toBe(false)});
+	});
 
 describe('WhatsApp export viewer parsing',()=>{
  it('parses bracketed 12-hour WhatsApp messages and keeps senders with spaces',()=>{const ms=parseConversation('[09/10/26, 10:30:15 AM] Alex Morgan: Hello\n[09/10/26, 10:31 AM] Sud Rao: I will finish today.');expect(ms).toHaveLength(2);expect(ms[0].sender).toBe('Alex Morgan');expect(ms[0].timestamp).toContain('10:30:15 AM')});
