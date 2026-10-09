@@ -1,0 +1,17 @@
+import {describe,expect,it} from 'vitest';import {parseConversation,validateInput} from '../src/parser/parser';import {analyze} from '../src/analysis/engine';
+const text='[2026-10-09 10:00] Maya: Please review the report by Friday.\ncontinuation line\n[2026-10-09 10:04] Alex: Decision: we will ship the emerald UI.\n[2026-10-09 10:08] Priya: @Alex, can you confirm?';
+describe('UNREAD local intelligence',()=>{
+ it('parses multiline and preserves source lines',()=>{const ms=parseConversation(text);expect(ms).toHaveLength(3);expect(ms[0].text).toContain('continuation line');expect(ms[0].id).toBe('m-1');expect(ms[0].line).toBe(1)});
+ it('keeps malformed or unlabelled lines instead of dropping content',()=>{const ms=parseConversation('unstructured evidence\nAlex: known format');expect(ms[0].sender).toBe('Unknown');expect(ms[0].text).toContain('unstructured evidence');expect(ms).toHaveLength(2)});
+ it('rejects empty and oversized input',()=>{expect(validateInput('')).toBeTruthy();expect(validateInput('x'.repeat(250001))).toMatch(/250 KB/)});
+ it('extracts explainable findings, tasks, decisions, questions and mentions',()=>{const a=analyze(parseConversation(text),'Alex');expect(a.tasks.length).toBeGreaterThan(0);expect(a.decisions[0].type).toBe('confirmed');expect(a.questions.length).toBe(1);expect(a.mentions).toContain('m-3');expect(a.findings[0].detail).toMatch(/deadline|mention|action/i)});
+ it('preserves ambiguous deadline language instead of silently resolving it',()=>{const a=analyze(parseConversation('Maya: Let us meet next Monday.'));expect(a.deadlines[0].ambiguous).toBe(true);expect(a.deadlines[0].label).toMatch(/resolve/)});
+ it('keeps source references and deterministic task states',()=>{const a=analyze(parseConversation('Jordan: Fix the export test; it is now complete.\nPriya: Please submit the report by tomorrow.'),'Alex');expect(a.tasks.some(t=>t.status==='completed')).toBe(true);expect(a.tasks.every(t=>t.sourceId.startsWith('m-'))).toBe(true)});
+ it('does not need fetch or a network service',()=>{expect(typeof fetch).toBe('function');expect(analyze(parseConversation('Alex: ordinary local note'),'Alex').summary).toContain('1 messages')});
+});
+
+describe('WhatsApp export viewer parsing',()=>{
+ it('parses bracketed 12-hour WhatsApp messages and keeps senders with spaces',()=>{const ms=parseConversation('[09/10/26, 10:30:15 AM] Alex Morgan: Hello\n[09/10/26, 10:31 AM] Sud Rao: I will finish today.');expect(ms).toHaveLength(2);expect(ms[0].sender).toBe('Alex Morgan');expect(ms[0].timestamp).toContain('10:30:15 AM')});
+ it('parses dash-separated 24-hour exports and multiline content',()=>{const ms=parseConversation('09/10/26, 22:30 - Priya Shah: Has anyone tested the API?\nThe staging key is still missing.');expect(ms[0].sender).toBe('Priya Shah');expect(ms[0].text).toContain('staging key')});
+ it('preserves WhatsApp system messages and media placeholders',()=>{const ms=parseConversation('[09/10/26, 10:30 AM] Alex: <image omitted>\n[09/10/26, 10:31 AM] Priya joined using this group\n[09/10/26, 10:32 AM] Alex: This message was deleted');expect(ms[0].media).toBe('image');expect(ms[1].kind).toBe('system');expect(ms[2].deleted).toBe(true)});
+});
